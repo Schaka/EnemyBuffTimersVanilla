@@ -1,0 +1,5 @@
+## Interface: 11200
+## Title: EnemyBuffTimersVanilla
+## Author: Schaka
+## Notes: Shows the duration of some enemy buffs on the buffs
+EnemyBuffTimersVanilla.xml
