@@ -218,7 +218,7 @@ function EnemyBuffTimers:CreateFrames(destName, spellName)
 		-- to make this work with OmniCC || OmniCC requires parent and Icon
 		this.guids[destName][spellName].parent = CreateFrame("Frame", spellName .. "_" .. destName)
 		this.guids[destName][spellName].parent:Hide()
-		this.guids[destName][spellName].parent.icon = CreateFrame("Frame", spellName .. "_" .. destName.."Icon")
+		this.guids[destName][spellName].parent.icon = CreateFrame("Frame", spellName .. "_" .. destName.."EBF")
 		this.guids[destName][spellName].parent.icon:SetAllPoints(this.guids[destName][spellName].parent)
 		this.guids[destName][spellName]:SetAllPoints(this.guids[destName][spellName].parent)
 		-------------------------------
@@ -334,7 +334,7 @@ function EnemyBuffTimers:CHAT_MSG_SPELL_AURA_GONE_OTHER()
 end
 
 function EnemyBuffTimers:CHAT_MSG_SPELL_BREAK_AURA()
-	log(event.."  "..arg1.."  "..arg2.."  "..arg3.."  "..arg4)
+	--log(event.."  "..arg1.."  "..arg2.."  "..arg3.."  "..arg4)
 	if UnitName("target") == destName then
 		this:PLAYER_TARGET_CHANGED()
 	end
