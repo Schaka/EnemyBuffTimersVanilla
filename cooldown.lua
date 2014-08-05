@@ -84,7 +84,7 @@ local oCooldownFrame_SetTimer = CooldownFrame_SetTimer
 CooldownFrame_SetTimer = function(cooldownFrame, start, duration, enable)
 	oCooldownFrame_SetTimer(cooldownFrame, start, duration, enable);
 	
-	if start > 0 and duration > 0 and enable > 0 then
+	if start > 0 and duration > 1.5 and enable > 0 then
 		local cooldownCount = cooldownFrame.textFrame or CreateCooldownCount(cooldownFrame, start, duration);	
 		if cooldownCount then
 			cooldownCount.start = start;
