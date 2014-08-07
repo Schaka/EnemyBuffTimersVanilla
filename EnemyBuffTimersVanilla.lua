@@ -291,6 +291,8 @@ function EnemyBuffTimers:PLAYER_ENTERING_WORLD()
 	this:RegisterEvent("CHAT_MSG_SPELL_HOSTILEPLAYER_BUFF")
 	this:RegisterEvent("CHAT_MSG_SPELL_PERIODIC_HOSTILEPLAYER_DAMAGE")
 	this:RegisterEvent("CHAT_MSG_SPELL_HOSTILEPLAYER_DAMAGE")
+	this:RegisterEvent("CHAT_MSG_SPELL_PERIODIC_CREATURE_DAMAGE")
+	this:RegisterEvent("CHAT_MSG_SPELL_PERIODIC_CREATURE_BUFFS")
 	
 	-- for healers || buff/debuff || hots/dots
 	this:RegisterEvent("CHAT_MSG_SPELL_FRIENDLYPLAYER_BUFF")
@@ -359,7 +361,52 @@ function EnemyBuffTimers:CHAT_MSG_SPELL_HOSTILEPLAYER_BUFF()
 	this:PLAYER_TARGET_CHANGED()
 end
 
+
+function EnemyBuffTimers:CHAT_MSG_SPELL_PERIODIC_CREATURE_BUFFS()
+	local destName = ""
+	local spellName = ""
+	
+	local first, last = string.find(arg1, "([\s\S]*)gains") -- idk what I'm doing
+	if first ~=nil then
+	destName = string.sub(arg1, 0, first-2)
+	end
+	
+	local first, last = string.find(arg1, "gains(.+)") --last word of a sentence
+	if first ~=nil then
+	spellName = string.sub(arg1, first+6, last-1) -- remove gains and space
+	end
+	
+	--log(event.."  destName: "..destName.."  spellName: "..spellName)
+	this:CreateFrames(destName, spellName)
+	if UnitName("target") == destName then
+		this:PLAYER_TARGET_CHANGED()
+	end
+end
+
 function EnemyBuffTimers:CHAT_MSG_SPELL_PERIODIC_HOSTILEPLAYER_DAMAGE()
+	--dots
+	--playerName is afflicted by spellName.
+	local destName = ""
+	local spellName = ""
+	
+	local first, last = string.find(arg1, "([\s\S]*)is") -- idk what I'm doing
+	if first ~=nil then
+	destName = string.sub(arg1, 0, first-2)
+	end
+	
+	local first, last = string.find(arg1, "(by.+)") --last word of a sentence
+	if first ~=nil then
+	spellName = string.sub(arg1, first+3, last-1) -- remove period
+	end
+	
+	--log(event.."  destName: "..destName.."  spellName: "..spellName)
+	this:CreateFrames(destName, spellName)
+	if UnitName("target") == destName then
+		this:PLAYER_TARGET_CHANGED()
+	end
+end
+
+function EnemyBuffTimers:CHAT_MSG_SPELL_PERIODIC_CREATURE_DAMAGE()
 	--dots
 	--playerName is afflicted by spellName.
 	local destName = ""
