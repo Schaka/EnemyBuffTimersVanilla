@@ -5,9 +5,9 @@
 	<Frame name="EnemyBuffTimers" hidden="false" inherits="ActionButtonTemplate">
 		<Scripts>
 			<OnEvent>
-				EnemyBuffTimers.OnEvent();
+				EnemyBuffTimers:OnEvent(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10);
 			</OnEvent>
-			<OnUpdate>EnemyBuffTimers_OnUpdate(arg1);</OnUpdate>
+			<OnUpdate>EnemyBuffTimers:OnUpdate(arg1)</OnUpdate>
 		</Scripts>
 	</Frame>
 	<GameTooltip name="EnemyToolTip" frameStrata="TOOLTIP" hidden="true" inherits="GameTooltipTemplate">

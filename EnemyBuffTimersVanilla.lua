@@ -188,13 +188,13 @@ local function firstToUpper(str)
 	end
 end
 
-local EnemyBuffTimers = CreateFrame("Frame", nil, UIParent, "ActionButtonTemplate")
+EnemyBuffTimers = CreateFrame("Frame", nil, UIParent, "ActionButtonTemplate")
 EnemyBuffTimers.TimeSinceLastUpdate = 0
-EnemyBuffTimers.OnEvent = function() -- functions created in "object:method"-style have an implicit first parameter of "this", which points to object || in 1.12 parsing arguments as ... doesn't work
-	this[event]() -- route event parameters to EnemyBuffTimers:event methods
+EnemyBuffTimers.OnEvent = function(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10) -- functions created in "object:method"-style have an implicit first parameter of "this", which points to object || in 1.12 parsing arguments as ... doesn't work
+	this[event](arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10) -- route event parameters to EnemyBuffTimers:event methods
 end
 
-function EnemyBuffTimers_OnUpdate(elapsed)
+function EnemyBuffTimers:OnUpdate(elapsed)
 	EnemyBuffTimers.TimeSinceLastUpdate = EnemyBuffTimers.TimeSinceLastUpdate + elapsed
 	if EnemyBuffTimers.TimeSinceLastUpdate >= 1 then
 		EnemyBuffTimers.TimeSinceLastUpdate = 0
@@ -206,7 +206,8 @@ end
 EnemyBuffTimers:SetScript("OnEvent", EnemyBuffTimers.OnEvent)
 EnemyBuffTimers:RegisterEvent("PLAYER_ENTERING_WORLD")
 
-function EnemyBuffTimers:CreateFrames(destName, spellName)
+function EnemyBuffTimers:CreateFrames(destName, spellName, context)
+	if context ~= nil then this = context end
 	if type(this.guids[destName]) ~= "table" then
 		this.guids[destName] = { }
 	end
@@ -307,11 +308,40 @@ function EnemyBuffTimers:PLAYER_ENTERING_WORLD()
 end
 
 function EnemyBuffTimers:SPELLCAST_START()
+	--log(arg1)
+	--log("cast start")
 	EnemyBuffTimers:PLAYER_TARGET_CHANGED()
 end
 function EnemyBuffTimers:SPELLCAST_STOP()
+	--log(arg1)
+	--log("cast stop")
 	EnemyBuffTimers:PLAYER_TARGET_CHANGED()
 end
+
+-- CastSpellByName hook to keep timers updated
+local oCastSpellByName = CastSpellByName
+function CastSpellByName(name)
+	local gcd1 = GetActionCooldown(1)
+	local gcd2 = GetActionCooldown(2)
+	if gcd1 == gcd2 and gcd1 ~= 0 then return end
+	oCastSpellByName(name)
+	if string.gfind(name, "(Rank") ~= nil then
+		name = string.sub(name, 0, string.len(name)-8)
+	end
+	EnemyBuffTimers:CreateFrames(UnitName("target"), name, EnemyBuffTimers)
+end
+
+-- UseAction hook to keep timers updated
+local oUseAction = UseAction
+function UseAction(slot, cursor, onself)
+	--local test = getglobal("ActionButton"..slot)
+	oUseAction(slot, cursor, onself)
+	EnemyToolTip:ClearLines()
+	EnemyToolTip:SetAction(slot)
+	local spellName = EnemyToolTipTextLeft1:GetText()
+	EnemyBuffTimers:CreateFrames(UnitName("target"), spellName, EnemyBuffTimers)
+end
+
 -----------------
 -- HIDE FRAMES --
 ----------------- 
