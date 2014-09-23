@@ -1,3 +1,15 @@
+--[[
+TO DO:
+- figure out why hooking causes errors here but not in KTM or SpellTimer
+- take combo point to duration functionality from SpellTimer
+- do the same for trap time
+- hook CastSpell, UseContainerItem, UseIventoryItem, CastPetAction
+- temporarily store timers and reset them on Dodge, Parry, Block, Resist
+	- take functionality from SpellTimer
+- add delay for cast time spells like Frostbolt (debuff) and Immolate
+	- again, SpellTimer has this functionality
+--]]
+
 local abilities = { 
 -- Debuffs
 	["Taunt"] = 3,
@@ -190,7 +202,7 @@ end
 
 EnemyBuffTimers = CreateFrame("Frame", nil, UIParent, "ActionButtonTemplate")
 EnemyBuffTimers.TimeSinceLastUpdate = 0
-EnemyBuffTimers.OnEvent = function(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10) -- functions created in "object:method"-style have an implicit first parameter of "this", which points to object || in 1.12 parsing arguments as ... doesn't work
+EnemyBuffTimers.OnEvent = function() -- functions created in "object:method"-style have an implicit first parameter of "this", which points to object || in 1.12 parsing arguments as ... doesn't work
 	this[event](arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10) -- route event parameters to EnemyBuffTimers:event methods
 end
 
@@ -305,15 +317,17 @@ function EnemyBuffTimers:PLAYER_ENTERING_WORLD()
 	this:RegisterEvent("CHAT_MSG_SPELL_PARTY_BUFF")
 	this:RegisterEvent("CHAT_MSG_SPELL_PARTY_DAMAGE")
 	this:RegisterEvent("CHAT_MSG_SPELL_PERIODIC_PARTY_DAMAGE")
+	
+	EnemyToolTip:ClearLines()
 end
 
 function EnemyBuffTimers:SPELLCAST_START()
-	--log(arg1)
+	log(arg1)
 	--log("cast start")
 	EnemyBuffTimers:PLAYER_TARGET_CHANGED()
 end
 function EnemyBuffTimers:SPELLCAST_STOP()
-	--log(arg1)
+	log(arg1)
 	--log("cast stop")
 	EnemyBuffTimers:PLAYER_TARGET_CHANGED()
 end
@@ -321,6 +335,7 @@ end
 -- CastSpellByName hook to keep timers updated
 local oCastSpellByName = CastSpellByName
 function CastSpellByName(name)
+	-- check for GCD
 	local gcd1 = GetActionCooldown(1)
 	local gcd2 = GetActionCooldown(2)
 	if gcd1 == gcd2 and gcd1 ~= 0 then return end
@@ -332,15 +347,25 @@ function CastSpellByName(name)
 end
 
 -- UseAction hook to keep timers updated
+-- something about this hook is broken, causes Lua errors but keeps functionality perfectly 
 local oUseAction = UseAction
-function UseAction(slot, cursor, onself)
+nUseAction = function(slot, checkCursor, onSelf)
 	--local test = getglobal("ActionButton"..slot)
-	oUseAction(slot, cursor, onself)
-	EnemyToolTip:ClearLines()
-	EnemyToolTip:SetAction(slot)
-	local spellName = EnemyToolTipTextLeft1:GetText()
-	EnemyBuffTimers:CreateFrames(UnitName("target"), spellName, EnemyBuffTimers)
+	if not (GetActionCooldown(slot) > 0) then
+		EnemyToolTip:ClearLines()
+		EnemyToolTip:SetAction(slot)
+		local spellName = EnemyToolTipTextLeft1:GetText()
+		if onSelf or UnitName("target") == nil then
+			EnemyBuffTimers:CreateFrames(UnitName("player"), spellName, EnemyBuffTimers)
+		else
+			EnemyBuffTimers:CreateFrames(UnitName("target"), spellName, EnemyBuffTimers)
+		end
+		
+		oUseAction(slot, checkCursor, onSelf)
+	end
+	
 end
+UseAction = nUseAction
 
 -----------------
 -- HIDE FRAMES --
