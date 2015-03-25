@@ -348,7 +348,7 @@ end
 
 -- UseAction hook to keep timers updated
 -- something about this hook is broken, causes Lua errors but keeps functionality perfectly 
-local oUseAction = UseAction
+--[[local oUseAction = UseAction
 nUseAction = function(slot, checkCursor, onSelf)
 	--local test = getglobal("ActionButton"..slot)
 	if not (GetActionCooldown(slot) > 0) then
@@ -365,7 +365,7 @@ nUseAction = function(slot, checkCursor, onSelf)
 	end
 	
 end
-UseAction = nUseAction
+UseAction = nUseAction]]
 
 -----------------
 -- HIDE FRAMES --
