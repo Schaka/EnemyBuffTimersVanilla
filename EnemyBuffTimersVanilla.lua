@@ -241,8 +241,8 @@ function EnemyBuffTimers:CreateFrames(destName, spellName, context)
 		this.guids[destName][spellName]:Show()
 		local scale = LunaTargetFrame:GetScale()
 		local width = LunaTargetFrame:GetWidth() / LunaTargetFrameBuff1:GetWidth()
-		log(scale*(1/width)*4.5)
-		this.guids[destName][spellName]:SetModelScale(scale*(1/width)*5)
+		--log(scale*(1/width)*4.5)
+		this.guids[destName][spellName]:SetModelScale(scale*(1/width)*4.75)
 		
 		if UnitName("target") == destName then
 			this:PLAYER_TARGET_CHANGED()
