@@ -239,8 +239,10 @@ function EnemyBuffTimers:CreateFrames(destName, spellName, context)
 		CooldownFrame_SetTimer(this.guids[destName][spellName], GetTime(), this.abilities[spellName], 1)
 		this.guids[destName][spellName].onFrame = "none"
 		this.guids[destName][spellName]:Show()
-		local scale = TargetFrame:GetScale()
-		this.guids[destName][spellName]:SetModelScale(scale*(2/5))
+		local scale = LunaTargetFrame:GetScale()
+		local width = LunaTargetFrame:GetWidth() / LunaTargetFrameBuff1:GetWidth()
+		log(scale*(1/width)*4.5)
+		this.guids[destName][spellName]:SetModelScale(scale*(1/width)*5)
 		
 		if UnitName("target") == destName then
 			this:PLAYER_TARGET_CHANGED()
@@ -322,12 +324,12 @@ function EnemyBuffTimers:PLAYER_ENTERING_WORLD()
 end
 
 function EnemyBuffTimers:SPELLCAST_START()
-	log(arg1)
+	--log(arg1)
 	--log("cast start")
 	EnemyBuffTimers:PLAYER_TARGET_CHANGED()
 end
 function EnemyBuffTimers:SPELLCAST_STOP()
-	log(arg1)
+	--log(arg1)
 	--log("cast stop")
 	EnemyBuffTimers:PLAYER_TARGET_CHANGED()
 end
@@ -348,7 +350,7 @@ end
 
 -- UseAction hook to keep timers updated
 -- something about this hook is broken, causes Lua errors but keeps functionality perfectly 
-local oUseAction = UseAction
+--[[local oUseAction = UseAction
 nUseAction = function(slot, checkCursor, onSelf)
 	--local test = getglobal("ActionButton"..slot)
 	if not (GetActionCooldown(slot) > 0) then
@@ -365,7 +367,7 @@ nUseAction = function(slot, checkCursor, onSelf)
 	end
 	
 end
-UseAction = nUseAction
+UseAction = nUseAction]]
 
 -----------------
 -- HIDE FRAMES --
@@ -716,7 +718,7 @@ function EnemyBuffTimers:UNIT_AURA(unitID)
 				EnemyToolTip:SetUnitBuff(unitID, i)
 				local name = EnemyToolTipTextLeft1:GetText()
 				if this.guids[destName][name] then
-					local region = getglobal(firstToUpper(unitID).."FrameBuff"..i)
+					local region = getglobal("Luna"..firstToUpper(unitID).."FrameBuff"..i)
 					if region then
 						this.guids[destName][name].parent:SetAllPoints(region)
 						this.guids[destName][name].parent:Show()
@@ -734,7 +736,7 @@ function EnemyBuffTimers:UNIT_AURA(unitID)
 				EnemyToolTip:SetUnitDebuff(unitID, i)
 				local name = EnemyToolTipTextLeft1:GetText()
 				if this.guids[destName][name] then
-					local region = getglobal(firstToUpper(unitID).."FrameDebuff"..i)
+					local region = getglobal("Luna"..firstToUpper(unitID).."FrameDebuff"..i)
 					if region then
 						this.guids[destName][name].parent:SetAllPoints(region)
 						this.guids[destName][name].parent:Show()
