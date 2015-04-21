@@ -239,10 +239,6 @@ function EnemyBuffTimers:CreateFrames(destName, spellName, context)
 		CooldownFrame_SetTimer(this.guids[destName][spellName], GetTime(), this.abilities[spellName], 1)
 		this.guids[destName][spellName].onFrame = "none"
 		this.guids[destName][spellName]:Show()
-		local scale = LunaTargetFrame:GetScale()
-		local width = LunaTargetFrame:GetWidth() / LunaTargetFrameBuff1:GetWidth()
-		--log(scale*(1/width)*4.5)
-		this.guids[destName][spellName]:SetModelScale(scale*(1/width)*4.75)
 		
 		if UnitName("target") == destName then
 			this:PLAYER_TARGET_CHANGED()
@@ -720,6 +716,10 @@ function EnemyBuffTimers:UNIT_AURA(unitID)
 				if this.guids[destName][name] then
 					local region = getglobal("Luna"..firstToUpper(unitID).."FrameBuff"..i)
 					if region then
+						this.guids[destName][spellName]:SetHeight(36)
+						this.guids[destName][spellName]:SetWidth(36)
+						local scale = LunaTargetFrameBuff1:GetHeight()/36
+						this.guids[destName][spellName]:SetModelScale(scale)
 						this.guids[destName][name].parent:SetAllPoints(region)
 						this.guids[destName][name].parent:Show()
 						this.guids[destName][name].onFrame = unitID
@@ -738,6 +738,10 @@ function EnemyBuffTimers:UNIT_AURA(unitID)
 				if this.guids[destName][name] then
 					local region = getglobal("Luna"..firstToUpper(unitID).."FrameDebuff"..i)
 					if region then
+						this.guids[destName][spellName]:SetHeight(36)
+						this.guids[destName][spellName]:SetWidth(36)
+						local scale = LunaTargetFrameBuff1:GetHeight()/36
+						this.guids[destName][spellName]:SetModelScale(scale)
 						this.guids[destName][name].parent:SetAllPoints(region)
 						this.guids[destName][name].parent:Show()
 						this.guids[destName][name].onFrame = unitID
