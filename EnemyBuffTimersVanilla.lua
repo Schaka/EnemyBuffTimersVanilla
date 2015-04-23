@@ -202,11 +202,15 @@ end
 
 EnemyBuffTimers = CreateFrame("Frame", nil, UIParent, "ActionButtonTemplate")
 EnemyBuffTimers.TimeSinceLastUpdate = 0
+EnemyBuffTimers.lastTarget = ""
 EnemyBuffTimers.OnEvent = function() -- functions created in "object:method"-style have an implicit first parameter of "this", which points to object || in 1.12 parsing arguments as ... doesn't work
-	this[event](arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10) -- route event parameters to EnemyBuffTimers:event methods
+	this[event](EnemyBuffTimers, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10) -- route event parameters to EnemyBuffTimers:event methods
 end
 
 function EnemyBuffTimers:OnUpdate(elapsed)
+	if not elapsed then
+		elapsed = 1/GetFramerate()
+	end	
 	EnemyBuffTimers.TimeSinceLastUpdate = EnemyBuffTimers.TimeSinceLastUpdate + elapsed
 	if EnemyBuffTimers.TimeSinceLastUpdate >= 1 then
 		EnemyBuffTimers.TimeSinceLastUpdate = 0
@@ -216,10 +220,10 @@ function EnemyBuffTimers:OnUpdate(elapsed)
 end
 
 EnemyBuffTimers:SetScript("OnEvent", EnemyBuffTimers.OnEvent)
+EnemyBuffTimers:SetScript("OnUpdate", EnemyBuffTimers.OnUpdate)
 EnemyBuffTimers:RegisterEvent("PLAYER_ENTERING_WORLD")
 
-function EnemyBuffTimers:CreateFrames(destName, spellName, context)
-	if context ~= nil then this = context end
+function EnemyBuffTimers:CreateFrames(destName, spellName)
 	if type(this.guids[destName]) ~= "table" then
 		this.guids[destName] = { }
 	end
@@ -251,10 +255,13 @@ function EnemyBuffTimers:UpdateFrames(destName, spellName)
 	if this.guids[destName] and this.guids[destName][spellName] and this.abilities[spellName] then
 		CooldownFrame_SetTimer(this.guids[destName][spellName], GetTime(), this.abilities[spellName], 1)
 		if destName ~= UnitName("target") then
-			local scale = TargetFrame:GetScale()
-			this.guids[destName][spellName]:SetModelScale(scale*(2/5))
-			this.guids[destName][spellName].parent:Hide()
-			this.guids[destName][spellName].onFrame = "none"
+			this.guids[destName][spellName]:SetHeight(36)
+			this.guids[destName][spellName]:SetWidth(36)
+			local scale = LunaTargetFrameDebuff1:GetHeight()/36
+			this.guids[destName][spellName]:SetScale(scale)
+			this.guids[destName][spellName].parent:SetAllPoints(region)
+			this.guids[destName][spellName].parent:Show()
+			this.guids[destName][spellName].onFrame = unitID
 		end
 		
 		if UnitName("target") == destName then
@@ -341,7 +348,7 @@ function CastSpellByName(name)
 	if string.gfind(name, "(Rank") ~= nil then
 		name = string.sub(name, 0, string.len(name)-8)
 	end
-	EnemyBuffTimers:CreateFrames(UnitName("target"), name, EnemyBuffTimers)
+	EnemyBuffTimers:CreateFrames(UnitName("target"), name)
 end
 
 -- UseAction hook to keep timers updated
@@ -379,7 +386,6 @@ function EnemyBuffTimers:CHAT_MSG_SPELL_AURA_GONE_OTHER()
 	if first ~=nil then
 	local destName = string.sub(arg1, first, last-1) -- remove period
 	end
-	
 	--log(event.."  destName: "..destName.."  spellName: "..spellName)
 	--SpellName fades from UnitName.
 	if UnitName("target") == destName then
@@ -401,17 +407,41 @@ end
 ------------------ 
 
 function EnemyBuffTimers:CHAT_MSG_SPELL_PERIODIC_HOSTILEPLAYER_BUFFS()
-	--hots
-	--playerName gains spellName.
-	--log(event.."  "..arg1.."  "..arg2.."  "..arg3.."  "..arg4)
-	this:PLAYER_TARGET_CHANGED()
+	local destName = ""
+	local spellName = ""
+	
+	local first, last = string.find(arg1, "([\s\S]*)gains") -- idk what I'm doing
+	if first ~=nil then
+	destName = string.sub(arg1, 0, first-2)
+	end
+	
+	local first, last = string.find(arg1, "gains(.+)") --last word of a sentence
+	if first ~=nil then
+	spellName = string.sub(arg1, first+6, last-1) -- remove gains and space
+	end
+	this:CreateFrames(destName, spellName)
+	if UnitName("target") == destName then
+		this:PLAYER_TARGET_CHANGED()
+	end
 end
 
 function EnemyBuffTimers:CHAT_MSG_SPELL_HOSTILEPLAYER_BUFF()
-	--buffs
-	--playerName gains spellName.
-	--log(event.."  "..arg1.."  "..arg2.."  "..arg3.."  "..arg4)
-	this:PLAYER_TARGET_CHANGED()
+	local destName = ""
+	local spellName = ""
+	
+	local first, last = string.find(arg1, "([\s\S]*)gains") -- idk what I'm doing
+	if first ~=nil then
+	destName = string.sub(arg1, 0, first-2)
+	end
+	
+	local first, last = string.find(arg1, "gains(.+)") --last word of a sentence
+	if first ~=nil then
+	spellName = string.sub(arg1, first+6, last-1) -- remove gains and space
+	end
+	this:CreateFrames(destName, spellName)
+	if UnitName("target") == destName then
+		this:PLAYER_TARGET_CHANGED()
+	end
 end
 
 
@@ -755,7 +785,7 @@ end
 function EnemyBuffTimers:PLAYER_TARGET_CHANGED()
 	for k,v in pairs(this.guids) do
 		for ke, va in pairs(v) do
-			if va.onFrame == "target" then
+			if this.lastTarget ~= UnitName("target") then
 				va.parent:ClearAllPoints()
 				va.parent:Hide()
 				va.onFrame = "none"
@@ -765,3 +795,5 @@ function EnemyBuffTimers:PLAYER_TARGET_CHANGED()
 	if UnitName("target") then this.lastTarget = UnitName("target") end
 	this:UNIT_AURA("target")
 end
+
+
